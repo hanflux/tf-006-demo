@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>箭箭突围</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#151e32">
+<style>
+#tf-boot{position:fixed;inset:0;z-index:9999;background:#151e32;color:#edf4ff;display:flex;align-items:center;justify-content:center;font:16px/1.65 system-ui,sans-serif;text-align:center;padding:24px;box-sizing:border-box}
+#tf-boot[hidden]{display:none}#tf-boot .card{max-width:330px;width:100%;background:#263650;border-radius:24px;padding:30px 22px;box-sizing:border-box;box-shadow:0 7px #0d1628}
+#tf-boot .mark{font-size:32px;color:#40d8bf;margin-bottom:12px}#tf-boot h1{font-size:23px;line-height:1.4;margin:0 0 16px}#tf-boot p{color:#bacbe3;margin:0 0 22px;font-size:15px}#tf-boot button{font:600 17px system-ui,sans-serif;border:0;border-radius:14px;background:#40d8bf;color:#112b32;min-height:49px;width:100%;cursor:pointer}#tf-boot button[hidden]{display:none}#tf-boot button:disabled{opacity:.65;cursor:wait}#tf-boot small{display:block;color:#93a8c7;font-size:12px;margin-top:18px}
+</style>
+<script>
+// Native boot layer: available before Cocos or any external resource loads.
+(function(){
+  'use strict';
+  var phase='loading', reloading=false, pendingError=false, slow=false, timer;
+  function draw(){
+    var root=document.getElementById('tf-boot');if(!root)return;
+    root.hidden=phase==='ready';root.setAttribute('data-phase',phase);
+    document.getElementById('tf-boot-title').textContent=phase==='error'?'路线暂时加载失败':slow?'加载时间较长':'正在准备路线';
+    document.getElementById('tf-boot-message').textContent=phase==='error'?'请确认连接后点击重试。已保存的进度不会被清除。':slow?'可以继续等待，也可以主动重新加载。已保存的进度不会被清除。':'正在加载游戏，请稍候。';
+    document.getElementById('tf-boot-retry').hidden=phase!=='error'&&!slow;
+  }
+  function fail(){if(phase==='ready'||reloading)return;phase='error';pendingError=true;clearTimeout(timer);draw();}
+  window.__TF006_BOOT__={
+    fail:fail,
+    ready:function(){if(phase!=='loading'||reloading)return;phase='ready';clearTimeout(timer);draw();},
+    mount:function(){draw();document.getElementById('tf-boot-retry').addEventListener('click',function(){
+      if(reloading||(!pendingError&&!slow))return;
+      reloading=true;this.disabled=true;this.textContent='正在重新加载…';
+      // New document, one initialization. Never clear or rewrite localStorage.
+      window.location.reload();
+    });}
+  };
+  window.addEventListener('error',function(e){var t=e.target;if(t&&(t.tagName==='SCRIPT'||t.tagName==='LINK'))fail();},true);
+  window.addEventListener('unhandledrejection',fail);
+  timer=setTimeout(function(){if(phase==='loading'){slow=true;draw();}},20000);
+})();
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="tf-boot" role="status" aria-live="polite" data-phase="loading"><section class="card"><div class="mark" aria-hidden="true">↗</div><h1 id="tf-boot-title">正在准备路线</h1><p id="tf-boot-message">正在加载游戏，请稍候。</p><button id="tf-boot-retry" type="button" hidden>重新加载 · 免费重试</button><small>箭箭突围 · P0 v0.1.2-art.3</small></section></div>
+<script>window.__TF006_BOOT__.mount();</script>
+<div id="GameDiv" cc_exact_fit_screen="true"><div id="Cocos3dGameContainer"><canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas></div></div>
+
+
+<!-- Polyfills bundle. -->
+
+<script src="src/polyfills.bundle.js" charset="utf-8"> </script>
+
+
+<!-- SystemJS support. -->
+<script src="src/system.bundle.js" charset="utf-8"> </script>
+
+<!-- Import map -->
+<script src="src/import-map.json" type="systemjs-importmap" charset="utf-8"> </script>
+
+<script>
+    System.import('./index.js').catch(function(err) { console.error(err); })
+</script>
+
+</body>
+</html>
